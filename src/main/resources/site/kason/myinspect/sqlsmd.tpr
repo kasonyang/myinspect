@@ -1,0 +1,11 @@
+{{var groups:List<site.kason.myinspect.ResultGroup>}}
+{{for g in groups}}
+
+{{g.name}}:
+
+{{for it in g.items}}
+    {{it.sql}}
+{{/for}}
+
+{{/for}}
+
