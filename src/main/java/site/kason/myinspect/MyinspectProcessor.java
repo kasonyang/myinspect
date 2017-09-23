@@ -2,9 +2,14 @@ package site.kason.myinspect;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
@@ -38,6 +43,16 @@ public class MyinspectProcessor extends AbstractProcessor {
     String jdbcUrl = System.getProperty("myinspect.db.url");
     String user = System.getProperty("myinspect.db.user");
     String password = System.getProperty("myinspect.db.password");
+    String driver = System.getProperty("myinspect.db.driver");
+    if(driver!=null && !driver.isEmpty()){
+      try{
+        Class<?> clazz = Class.forName(driver);
+        Driver driverObj =(Driver) clazz.newInstance();
+        DriverManager.registerDriver(driverObj);
+      } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException ex) {
+        throw new RuntimeException(ex);
+      }
+    }
     if(jdbcUrl!=null && !jdbcUrl.isEmpty()){
       inspector.addAnalyzer(new SyntaxAnalyzer(jdbcUrl, user, password));
     }
