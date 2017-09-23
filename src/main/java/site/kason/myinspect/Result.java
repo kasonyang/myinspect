@@ -32,6 +32,10 @@ public class Result {
       put(type, method, s);
     }
   }
+  
+  public Map<String, ResultGroup> getResults(){
+    return this.resultGroups;
+  }
 
   public String render() {
     List<ResultGroup> groups = new ArrayList(resultGroups.values());
