@@ -16,7 +16,7 @@ public class MybatisSQLUtilTest {
   @Test
   public void test(){
     String sql = "key=#{key}";
-    assertEquals("key=null", MybatisSQLUtil.removeVar(sql));
+    assertEquals("key=0", MybatisSQLUtil.removeVar(sql));
   }
   
 }

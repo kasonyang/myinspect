@@ -13,7 +13,7 @@ public class MybatisSQLUtil {
     GenericTokenParser parser = new GenericTokenParser("#{", "}", new TokenHandler() {
       @Override
       public String handleToken(String content) {
-        return "null";
+        return "0";
       }
     });
     return parser.parse(sql);
