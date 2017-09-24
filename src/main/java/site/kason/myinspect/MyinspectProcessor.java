@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -17,6 +18,7 @@ import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
+import site.kason.myinspect.inspect.Analyzer;
 import site.kason.myinspect.inspect.Diagnosis;
 import site.kason.myinspect.inspect.Inspector;
 import site.kason.myinspect.inspect.SyntaxAnalyzer;
@@ -53,22 +55,29 @@ public class MyinspectProcessor extends AbstractProcessor {
         throw new RuntimeException(ex);
       }
     }
+    List<String> analyzers = new LinkedList();
     if(jdbcUrl!=null && !jdbcUrl.isEmpty()){
       inspector.addAnalyzer(new SyntaxAnalyzer(jdbcUrl, user, password));
+      analyzers.add(SyntaxAnalyzer.class.getSimpleName());
     }
+    System.out.println("myinspect:Using inspect Analyzers:" + analyzers);
+    int inspectedCount = 0;
+    int diagnosisCount = 0;
     for(ResultGroup rg :resultMap.values()){
       for(ResultItem it:rg.getItems()){
         String sql = it.getSql();
         String normalSql = MybatisSQLUtil.removeVar(sql);
         List<Diagnosis> diagnosisList = inspector.inspect(normalSql);
+        diagnosisCount+=diagnosisList.size();
         for(Diagnosis d:diagnosisList){
           System.out.println(sql);
           System.out.println(d);
           System.out.println("");
         }
+        inspectedCount++;
       }
     }
-    
+    System.out.format("myinspect:%d sql inspected. %d diagnosis provided.\n", inspectedCount,diagnosisCount);
     String outFile = System.getProperty("myinspect.outfile");
     if (outFile != null && !outFile.isEmpty()) {
       try {
