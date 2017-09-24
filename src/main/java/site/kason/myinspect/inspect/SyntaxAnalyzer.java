@@ -5,6 +5,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
+import javax.annotation.Nullable;
 
 /**
  *
@@ -23,14 +24,13 @@ public class SyntaxAnalyzer implements Analyzer {
   }
 
   @Override
-  public List<Diagnosis> analyse(String sql) {
+  public void analyse(String sql,DiagnosisHandler diagnosisHandler) {
     String explainSql = "explain " + sql;
     try {
       connection.prepareStatement(explainSql).executeQuery();
-      return Collections.EMPTY_LIST;
     } catch (SQLException ex) {
       Diagnosis dn = new Diagnosis(Diagnosis.Kind.ERROR, ex.getMessage(), null);
-      return Collections.singletonList(dn);
+      diagnosisHandler.handleDiagnosis(dn);
     }
   }
 

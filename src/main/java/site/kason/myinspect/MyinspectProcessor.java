@@ -9,8 +9,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
@@ -18,8 +16,6 @@ import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
-import site.kason.myinspect.inspect.Analyzer;
-import site.kason.myinspect.inspect.Diagnosis;
 import site.kason.myinspect.inspect.Inspector;
 import site.kason.myinspect.inspect.SyntaxAnalyzer;
 import site.kason.myinspect.util.MybatisSQLUtil;
@@ -32,9 +28,13 @@ import site.kason.myinspect.util.MybatisSQLUtil;
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class MyinspectProcessor extends AbstractProcessor {
 
+  private int diagnosisCount;
+
   @Override
   public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-    if(roundEnv.processingOver()) return false;
+    if (roundEnv.processingOver()) {
+      return false;
+    }
     MyinspectElementVisitor srev = new MyinspectElementVisitor();
     for (Element e : roundEnv.getRootElements()) {
       srev.visit(e);
@@ -46,38 +46,37 @@ public class MyinspectProcessor extends AbstractProcessor {
     String user = System.getProperty("myinspect.db.user");
     String password = System.getProperty("myinspect.db.password");
     String driver = System.getProperty("myinspect.db.driver");
-    if(driver!=null && !driver.isEmpty()){
-      try{
+    if (driver != null && !driver.isEmpty()) {
+      try {
         Class<?> clazz = Class.forName(driver);
-        Driver driverObj =(Driver) clazz.newInstance();
+        Driver driverObj = (Driver) clazz.newInstance();
         DriverManager.registerDriver(driverObj);
       } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException ex) {
         throw new RuntimeException(ex);
       }
     }
     List<String> analyzers = new LinkedList();
-    if(jdbcUrl!=null && !jdbcUrl.isEmpty()){
+    if (jdbcUrl != null && !jdbcUrl.isEmpty()) {
       inspector.addAnalyzer(new SyntaxAnalyzer(jdbcUrl, user, password));
       analyzers.add(SyntaxAnalyzer.class.getSimpleName());
     }
     System.out.println("myinspect:Using inspect Analyzers:" + analyzers);
     int inspectedCount = 0;
-    int diagnosisCount = 0;
-    for(ResultGroup rg :resultMap.values()){
-      for(ResultItem it:rg.getItems()){
+    diagnosisCount = 0;
+    for (ResultGroup rg : resultMap.values()) {
+      for (ResultItem it : rg.getItems()) {
         String sql = it.getSql();
         String normalSql = MybatisSQLUtil.removeVar(sql);
-        List<Diagnosis> diagnosisList = inspector.inspect(normalSql);
-        diagnosisCount+=diagnosisList.size();
-        for(Diagnosis d:diagnosisList){
+        inspector.inspect(normalSql, (d) -> {
+          System.out.println("");
           System.out.println(sql);
           System.out.println(d);
-          System.out.println("");
-        }
+          diagnosisCount++;
+        });
         inspectedCount++;
       }
     }
-    System.out.format("myinspect:%d sql inspected. %d diagnosis provided.\n", inspectedCount,diagnosisCount);
+    System.out.format("myinspect:%d sql inspected. %d diagnosis provided.\n", inspectedCount, diagnosisCount);
     String outFile = System.getProperty("myinspect.outfile");
     if (outFile != null && !outFile.isEmpty()) {
       try {

@@ -1,6 +1,7 @@
 package site.kason.myinspect.inspect;
 
 import java.util.List;
+import javax.annotation.Nullable;
 
 /**
  *
@@ -8,6 +9,6 @@ import java.util.List;
  */
 public interface Analyzer {
 
-  public List<Diagnosis> analyse(String sql);
+  public void analyse(String sql,@Nullable DiagnosisHandler diagnosisHandler);
 
 }
