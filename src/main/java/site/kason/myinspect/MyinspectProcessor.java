@@ -68,9 +68,7 @@ public class MyinspectProcessor extends AbstractProcessor {
         String sql = it.getSql();
         String normalSql = MybatisSQLUtil.removeVar(sql);
         inspector.inspect(normalSql, (d) -> {
-          System.out.println("");
-          System.out.println(sql);
-          System.out.println(d);
+          System.out.format("\n%s\nat %s::%s\n%s\n", d , it.getType() , it.getMethod() , normalSql );
           diagnosisCount++;
         });
         inspectedCount++;
