@@ -1,5 +1,6 @@
 package site.kason.myinspect;
 
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.Driver;
@@ -8,6 +9,7 @@ import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
@@ -42,9 +44,29 @@ public class MyinspectProcessor extends AbstractProcessor {
     Result result = srev.getResult();
     Map<String, ResultGroup> resultMap = result.getResults();
     Inspector inspector = new Inspector();
-    String jdbcUrl = System.getProperty("myinspect.db.url");
-    String user = System.getProperty("myinspect.db.user");
-    String password = System.getProperty("myinspect.db.password");
+    String jdbcUrl,user,password;
+    String dbConfigFileValue = System.getProperty("myinspect.db.config.file");
+    if(dbConfigFileValue!=null){
+      Properties prop = new Properties();
+      try(FileInputStream fis = new FileInputStream(dbConfigFileValue)) {
+        prop.load(fis);
+      } catch (IOException ex) {
+        throw new RuntimeException(ex);
+      }
+      String urlKey = System.getProperty("myinspect.db.config.url-key");
+      String userKey = System.getProperty("myinspect.db.config.user-key");
+      String passwordKey = System.getProperty("myinspect.db.config.password-key");
+      if(urlKey==null){
+        throw new RuntimeException("myinspect.db.config.url-key property is unspecified");
+      }
+      jdbcUrl = prop.getProperty(urlKey);
+      user = userKey!=null ? prop.getProperty(userKey) : "";
+      password = passwordKey!=null ? prop.getProperty(passwordKey) : "";
+    }else{
+      jdbcUrl = System.getProperty("myinspect.db.url");
+      user = System.getProperty("myinspect.db.user");
+      password = System.getProperty("myinspect.db.password");
+    }
     String driver = System.getProperty("myinspect.db.driver");
     if (driver != null && !driver.isEmpty()) {
       try {
