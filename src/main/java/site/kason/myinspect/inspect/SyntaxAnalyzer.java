@@ -2,10 +2,8 @@ package site.kason.myinspect.inspect;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collections;
-import java.util.List;
-import javax.annotation.Nullable;
 
 /**
  *
@@ -27,11 +25,31 @@ public class SyntaxAnalyzer implements Analyzer {
   public void analyse(String sql,DiagnosisHandler diagnosisHandler) {
     String explainSql = "explain " + sql;
     try {
-      connection.prepareStatement(explainSql).executeQuery();
+      ResultSet result = connection.prepareStatement(explainSql).executeQuery();
+      while(result.next()){
+        String extra = result.getString("Extra");
+        if(extra==null) extra = "";
+        extra = extra.toLowerCase();
+        boolean usingWhere = extra.contains("using where");
+        if( !usingWhere && (isDeleteSql(sql)||isUpdateSql(sql))){
+          diagnosisHandler.handleDiagnosis(new Diagnosis(Diagnosis.Kind.WARNING, "delete/update table without where condition", "add where condition"));
+        }
+        if(extra.contains("using filesort")){
+          diagnosisHandler.handleDiagnosis(new Diagnosis(Diagnosis.Kind.NOTE, "Using file sort", "optimize your sql"));
+        }
+      }
     } catch (SQLException ex) {
       Diagnosis dn = new Diagnosis(Diagnosis.Kind.ERROR, ex.getMessage(), null);
       diagnosisHandler.handleDiagnosis(dn);
     }
+  }
+  
+  private boolean isDeleteSql(String sql){
+    return sql.trim().toLowerCase().startsWith("delete ");
+  }
+  
+  private boolean isUpdateSql(String sql){
+    return sql.trim().toLowerCase().startsWith("update");
   }
 
 }
