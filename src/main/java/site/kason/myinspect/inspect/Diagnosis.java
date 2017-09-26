@@ -9,7 +9,7 @@ import javax.annotation.Nullable;
 public class Diagnosis {
 
   public static enum Kind {
-    ERROR, WARNING
+    ERROR, WARNING,NOTE
   }
 
   private Kind kind;
