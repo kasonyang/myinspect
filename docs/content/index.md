@@ -13,7 +13,9 @@ Myinspect is a sql inspector for projects using mybatis.
 
 NOTE:The inspector only works in projects building with gradle.
 
-1.add the follow code to your `gradle.build` file:
+1.add one of the follow code to your `gradle.build` file:
+
+Example1:
 
     //specify your database driver class
     System.setProperty("myinspect.db.driver","com.mysql.cj.jdbc.Driver");
@@ -23,6 +25,19 @@ NOTE:The inspector only works in projects building with gradle.
     System.setProperty("myinspect.db.config.url-key","datasource.url")
     System.setProperty("myinspect.db.config.user-key","datasource.user")
     System.setProperty("myinspect.db.config.password-key","datasource.password")
+    //add myinspect dependency
+    dependencies{
+      compileOnly 'site.kason:myinspect:VERSION'
+    }
+
+Example2:
+
+    //specify your database driver class
+    System.setProperty("myinspect.db.driver","com.mysql.cj.jdbc.Driver");
+    //specify the data source,including url,user and database
+    System.setProperty("myinspect.db.url","jdbc:mysql://localhost/YOURDATABASE");
+    System.setProperty("myinspect.db.user","root");
+    System.setProperty("myinspect.db.password","YOURPASSWORD");
     //add myinspect dependency
     dependencies{
       compileOnly 'site.kason:myinspect:VERSION'
